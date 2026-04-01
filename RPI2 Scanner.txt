@@ -1,0 +1,127 @@
+from bluepy.btle import Scanner
+from math import *
+from collections import namedtuple
+from datetime import datetime, timedelta
+import numpy as np
+import time
+import sys
+
+import paho.mqtt.client as mqtt
+#RPI3 address
+#broker_address = "192.168.0.155"
+#RPI1 address
+#broker_address = "192.168.0.134"
+#RPI2 address
+broker_address = "192.168.0.124"
+
+scanner = Scanner()
+
+distance1 = 0
+distance2 = 0
+state = False
+rssi_array1 = []
+rssi_array2 = []
+rssi_array3 = []
+
+new_rssi = 0
+max_samples = 15
+max_dist = 10
+global pos
+global var
+
+def main():
+        #print ("Scan has started")
+
+        process_var = 3.
+        var = 400
+        sensor_var = 10.
+        velocity = 0.001
+        dt = 1
+
+        while True:
+                devices = scanner.scan(1.0)
+                time.sleep(1.0)
+               #print ("\t")
+                for device in devices:
+                        if device.addr == "ff:ff:fa:01:3e:6b":
+                                distance1 = calculateDist(device.rssi)
+                                updateArray(rssi_array1, distance1)
+                                if len(rssi_array1) > 1:
+                                        pos = 0
+                                        for value in rssi_array1:
+                                                dx = velocity * dt
+                                                pos = pos + dx
+                                                var = var + process_var
+
+                                                pos = (var * value + sensor_var * pos)/(var + sensor_var)
+                                                var = (var * sensor_var)/(var + sensor_var)
+                    
+                                        timestamp = (datetime.now() + timedelta(hours=-4)).strftime('%H:%M:%S')
+                                        msg = ('ROOM2 NUT1 RSSI {} DISTANCE {:3.2f} TIME {}'.format(device.rssi, pos, timestamp))
+                                        print (msg)
+                                        talker (msg)
+
+                        if device.addr == "ff:ff:ab:02:15:d9":
+                                distance2 = calculateDist(device.rssi)
+                                updateArray(rssi_array2, distance2)
+                                if len(rssi_array2) > 1:
+                                        pos = 0
+                                        for value in rssi_array2:
+                                                dx = velocity * dt
+                                                pos = pos + dx
+                                                var = var + process_var
+
+                                                pos = (var * value + sensor_var * pos)/(var + sensor_var)
+                                                var = (var * sensor_var)/(var + sensor_var)
+      
+                                        timestamp = (datetime.now() + timedelta(hours=-4)).strftime('%H:%M:%S')
+                                        msg = ('ROOM2 NUT2 RSSI {} DISTANCE {:3.2f} TIME {}'.format(device.rssi, pos, timestamp))
+                                        print (msg)
+                                        talker (msg)
+										
+                        if device.addr == "ff:ff:ab:02:15:67":
+                                distance1 = calculateDist(device.rssi)
+                                updateArray(rssi_array3, distance1)
+                                if len(rssi_array3) > 1:
+                                        pos = 0
+                                        for value in rssi_array3:
+                                                dx = velocity * dt
+                                                pos = pos + dx
+                                                var = var + process_var
+
+                                                pos = (var * value + sensor_var * pos)/(var + sensor_var)
+                                                var = (var * sensor_var)/(var + sensor_var)
+                          
+                                        timestamp = (datetime.now() + timedelta(hours=-4)).strftime('%H:%M:%S')
+                                        msg = ('ROOM2 NUT3 RSSI {} DISTANCE {:3.2f} TIME {}'.format(device.rssi, pos, timestamp))
+                                        print (msg)
+                                        talker (msg)
+										
+def calculateDist(rssi):
+#Calculates the distance where -54 is the power 1 m away
+#2.5 is an environmental factor
+d = 10 ** ((-54 -  rssi)/(10*2.5))
+d = round (d,2)
+return d
+
+#Kalman Filter to smooth RSSI values in a rolling window array
+def updateArray (rssi_array, new_rssi):
+        if len(rssi_array) == max_samples:
+                del rssi_array[0]
+        if len(rssi_array) < max_samples:
+                rssi_array.append (new_rssi)
+
+        #print ("DISTANCE WINDOW {}".format(rssi_array))
+
+def talker (msg):
+	#client = mqtt.Client("P1")
+	client = mqtt.Client("P2")
+        #client = mqtt.Client("P3")
+        client.connect(broker_address)
+        str = msg
+        client.publish("testTopic",msg)
+        #rate.sleep()
+
+if __name__ == '__main__':
+        main()
+

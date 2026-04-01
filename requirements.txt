@@ -1,0 +1,6 @@
+# Central subscriber (Windows/Linux PC)
+paho-mqtt>=1.6.1
+PyYAML>=6.0
+
+# Scanner nodes (Raspberry Pi only)
+# bluepy>=1.3.0  # install separately on each Pi: sudo pip install bluepy

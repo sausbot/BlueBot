@@ -1,0 +1,30 @@
+defaults:
+  mqtt_port: 1883
+  mqtt_topic: "testTopic"
+  scan_duration_seconds: 1.0
+  utc_offset_hours: -4
+  kalman:
+    process_variance: 3.0
+    sensor_variance: 10.0
+    initial_variance: 400.0
+  distance:
+    reference_rssi: -54       # RSSI measured at 1 metre
+    path_loss_exponent: 2.5   # Environmental factor (higher = more signal decay)
+  tags:
+    - name: "NUT1"
+      mac: "ff:ff:fa:01:3e:6b"
+    - name: "NUT2"
+      mac: "ff:ff:ab:02:15:d9"
+    - name: "NUT3"
+      mac: "ff:ff:ab:02:15:67"
+
+nodes:
+  rpi1:
+    room_name: "ROOM1"
+    broker_host: "192.168.0.134"
+  rpi2:
+    room_name: "ROOM2"
+    broker_host: "192.168.0.124"
+  rpi3:
+    room_name: "ROOM3"
+    broker_host: "192.168.0.155"

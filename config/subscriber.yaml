@@ -1,0 +1,11 @@
+nodes_config: "config/nodes.yaml"
+
+topic: "testTopic"
+debounce_count: 12
+log_file: "Logging.txt"
+debug_log_file: "SubLog.txt"
+
+tags:
+  - name: "NUT1"
+  - name: "NUT2"
+  - name: "NUT3"
